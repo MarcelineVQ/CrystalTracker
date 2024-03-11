@@ -1,7 +1,7 @@
 -- Name: AutoMana
 -- License: LGPL v2.1
 
-local DEBUG_MODE = true
+local DEBUG_MODE = false
 
 local function debug_print(text)
   if DEBUG_MODE == true then DEFAULT_CHAT_FRAME:AddMessage(text) end
@@ -108,6 +108,20 @@ CrystalTracker:RegisterEvent("CHAT_MSG_LOOT")
 -- AutoMana:RegisterEvent("ITEM_PUSH")
 CrystalTracker:RegisterEvent("ADDON_LOADED")
 
+function pairsByKeys (t, f)
+  local a = {}
+  for n in pairs(t) do table.insert(a, n) end
+  table.sort(a, f)
+  local i = 0      -- iterator variable
+  local iter = function ()   -- iterator function
+    i = i + 1
+    if a[i] == nil then return nil
+    else return a[i], t[a[i]]
+    end
+  end
+  return iter
+end
+
 local function handleCommands(msg,editbox)
   local args = {};
   buildHistogram()
@@ -115,9 +129,21 @@ local function handleCommands(msg,editbox)
   if args[1] == "histo" or args[1] == "histogram" or args[1] == "hourly" then
     showHistogram()
   else
+    -- for last hour
+    local strikes,crystals = 0,0
+    local now = time()
+    for k,v in pairs(CrystalStamps) do
+      if now - k < 3600 then
+        strikes = strikes + 1
+        crystals = crystals + v.crystal
+      end
+    end
+    if strikes > 0 then
+      ct_print(format('Tracked this last hour: %d strikes, %d crystals, rate %.3f%%', strikes,crystals,crystals/strikes))
+    end
     local c = 0
     for _,v in pairs(Histogram) do c = c + v.crystal end
-    ct_print('Tracked: '..StampSize..' nodes, '..c..'crystals, rate '..c/StampSize)
+    ct_print(format('Tracked total: %d strikes, %d crystals, rate %.3f%%', StampSize,c,c/StampSize))
   end
 end
 
