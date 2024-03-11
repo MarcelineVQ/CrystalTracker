@@ -59,7 +59,8 @@ local function buildHistogram()
       local p,h,m,c = val.name,val.hour,val.minute,val.crystal
       local hour = tonumber(h)
       if not Histogram[hour] then Histogram[hour] = {total = 0,crystal = 0, rate = 0} end
-      Histogram[hour].total = Histogram[hour].total + 1
+      -- don't count crystals as strikes
+      if c == 0 then Histogram[hour].total = Histogram[hour].total + 1 end
       Histogram[hour].crystal = Histogram[hour].crystal + c
       Histogram[hour].rate = Histogram[hour].crystal / Histogram[hour].total
     end
@@ -108,7 +109,7 @@ CrystalTracker:RegisterEvent("CHAT_MSG_LOOT")
 -- AutoMana:RegisterEvent("ITEM_PUSH")
 CrystalTracker:RegisterEvent("ADDON_LOADED")
 
-function pairsByKeys (t, f)
+local function pairsByKeys (t, f)
   local a = {}
   for n in pairs(t) do table.insert(a, n) end
   table.sort(a, f)
@@ -130,20 +131,27 @@ local function handleCommands(msg,editbox)
     showHistogram()
   else
     -- for last hour
-    local strikes,crystals = 0,0
+    local total_strikes,total_crystals = 0,0
+    local h_strikes,h_crystals = 0,0
     local now = time()
     for k,v in pairs(CrystalStamps) do
-      if now - k < 3600 then
-        strikes = strikes + 1
-        crystals = crystals + v.crystal
+      local last_hour = now - k < 3600
+      -- if it's a crystal stamp it's not a 'strike', strikes are indicated by thorium
+      if v.crystal > 0 then
+        total_crystals = total_crystals + v.crystal
+        if last_hour then h_crystals = h_crystals + v.crystal end
+      else
+        total_strikes = total_strikes + 1
+        if last_hour then h_strikes = h_strikes + 1 end
       end
     end
-    if strikes > 0 then
-      ct_print(format('Tracked this last hour: %d strikes, %d crystals, rate %.3f%%', strikes,crystals,crystals/strikes))
+    if h_strikes > 0 then
+      ct_print(format('Tracked this last hour: %d strikes, %d crystals, rate %.3f%%', h_strikes,h_crystals,(h_crystals/h_strikes*100)))
     end
     local c = 0
     for _,v in pairs(Histogram) do c = c + v.crystal end
-    ct_print(format('Tracked total: %d strikes, %d crystals, rate %.3f%%', StampSize,c,c/StampSize))
+    -- ct_print(format('Tracked total: %d strikes, %d crystals, rate %.3f%%', StampSize,c,c/StampSize))
+    ct_print(format('Tracked total: %d strikes, %d crystals, rate %.3f%%', total_strikes,total_crystals,(total_crystals/total_strikes*100)))
   end
 end
 
