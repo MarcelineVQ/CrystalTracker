@@ -1,0 +1,9 @@
+## Interface: 11200
+## Title: CrystalTracker
+## X-Category: Interface Enhancements
+## X-Date: 2024-02-18
+## X-Website: 
+## Version: 1.0
+## SavedVariables: CrystalStamps, StampSize, Histogram
+
+CrystalTracker.lua
