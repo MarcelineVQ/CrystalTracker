@@ -41,7 +41,7 @@ function showHistogram()
   for i=0,23 do
     local v = Histogram[i]
     if v then
-      ct_print(format("Hour %d: %d veins, %d crystals, %f rate.", i, v.total, v.crystal, v.rate))
+      ct_print(format("Hour %d: %d veins, %d crystals, %.3f rate.", i, v.total, v.crystal, (v.rate*100)))
     else
       ct_print(format("Hour %d:", i))
     end
