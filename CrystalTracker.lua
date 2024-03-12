@@ -41,7 +41,7 @@ function showHistogram()
   for i=0,23 do
     local v = Histogram[i]
     if v then
-      ct_print(format("Hour %d: %d veins, %d crystals, %.3f rate.", i, v.total, v.crystal, (v.rate*100)))
+      ct_print(format("Hour %d: %d veins, %d crystals, %.3f%% rate.", i, v.total, v.crystal, (v.rate*100)))
     else
       ct_print(format("Hour %d:", i))
     end
@@ -125,9 +125,9 @@ end
 
 local function handleCommands(msg,editbox)
   local args = {};
-  buildHistogram()
   for word in string.gfind(msg,'%S+') do table.insert(args,word) end
   if args[1] == "histo" or args[1] == "histogram" or args[1] == "hourly" then
+    buildHistogram()
     showHistogram()
   else
     -- for last hour
