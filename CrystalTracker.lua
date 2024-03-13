@@ -70,20 +70,24 @@ end
 
 local function OnEvent()
   if event == "CHAT_MSG_LOOT" and GetZoneText() == "Zul'Gurub" then
-      local now = time()
-      local h,m = date("!%H",now),date("!%M",now)
-      local row = {name = UnitName("player"),hour = h,minute = m, crystal = 0}
-      if gotItem(thorium_id,arg1) then
-        debug_print("Got Thorium")
-        tinsert(CrystalStamps,time(),row)
-        histo_old = true
-      elseif gotItem(arcane_id,arg1) then
-        debug_print("Got Crystal")
-        row.crystal = 1
-        tinsert(CrystalStamps,time(),row)
-        histo_old = true
-      end
-  elseif event == "ADDON_LOADED" then
+    local now = time()
+    local h,m = date("!%H",now),date("!%M",now)
+    local row = {name = UnitName("player"),hour = h,minute = m, crystal = 0}
+    if gotItem(thorium_id,arg1) then
+      debug_print("Got Thorium")
+      tinsert(CrystalStamps,time(),row)
+      histo_old = true
+    elseif gotItem(arcane_id,arg1) then
+      debug_print("Got Crystal")
+      row.crystal = 1
+      tinsert(CrystalStamps,time(),row)
+      histo_old = true
+    end
+  end
+end
+
+local function Init()
+  if event == "ADDON_LOADED" and arg1 == "CrystalTracker" then
     debug_print("addon loaded")
     CrystalTracker:UnregisterEvent("ADDON_LOADED")
     if not CrystalStamps then CrystalStamps = {} end
@@ -100,13 +104,12 @@ local function OnEvent()
       buildHistogram()
     end
     StampSize = stamps_size
+    CrystalTracker:SetScript("OnEvent", OnEvent)
   end
 end
 
-CrystalTracker:SetScript("OnEvent", OnEvent)
--- AutoMana:RegisterEvent("BAG_UPDATE")
+CrystalTracker:SetScript("OnEvent", Init)
 CrystalTracker:RegisterEvent("CHAT_MSG_LOOT")
--- AutoMana:RegisterEvent("ITEM_PUSH")
 CrystalTracker:RegisterEvent("ADDON_LOADED")
 
 local function pairsByKeys (t, f)
